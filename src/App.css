@@ -1,0 +1,114 @@
+@import url("https://rsms.me/inter/inter.css");
+
+:root {
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #fbfbfb;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  filter: saturate(0);
+}
+
+#root {
+  width: 50ch;
+  margin-top: 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+/* input:not([type="checkbox"])  */
+textarea {
+  font-family: inherit;
+  width: 100%;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0px 12px 25px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  margin-top: 0.5em;
+  margin-bottom: 4em;
+  background: white;
+  height: auto;
+}
+
+input:focus {
+  outline: none;
+}
+
+.anticon-delete {
+  width: 32px !important;
+  cursor: pointer;
+  color: #c0c0c0;
+}
+
+.anticon-delete:hover {
+  color: #272730;
+}
+
+.note {
+  padding: 1rem;
+  background-color: #fff;
+  border-radius: .5rem;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.04);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  overflow: hidden;
+}
+.note > .metadata {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.note .timestamp {
+  font-size: 0.8rem;
+  color: #c0c0c0;
+}
+.note > span {
+  display: inline-block;
+  width: 100%;
+}
+
+h1 {
+  font-size: 10em;
+  font-weight: 400;
+  margin: 0;
+  margin-bottom: 2rem;
+  padding: 0;
+  letter-spacing: -0.07em;
+  color: black;
+  white-space: nowrap;
+  font-kerning: normal;
+}
+h1 > .T {
+  letter-spacing: -0.15em;
+}
