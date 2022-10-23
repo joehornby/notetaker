@@ -19,12 +19,12 @@ const noteAtomFamily = atomFamily(
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
       }),
     }),
   (a: Param, b: Param) => a.id === b.id
 );
 
-const filterAtom = atom("all");
 const notesAtom = atom<string[]>([]);
 
 const Note = ({ id, remove }: { id: string; remove: (id: string) => void }) => {
@@ -58,27 +58,64 @@ const Notes = ({ remove }: { remove: (id: string) => void }) => {
 const NoteList = () => {
   const [form] = Form.useForm();
   const inputRef = useRef<InputRef>(null);
-  // Use `useSetAtom` to avoid re-render
-  // const [, setNotes] = useAtom(notesAtom)
   const setNotes = useSetAtom(notesAtom);
+
   const remove = (id: string) => {
     setNotes((prev) => prev.filter((note) => note !== id));
     noteAtomFamily.remove({ id });
   };
+
+  const [, dispatch] = useAtom(serializeAtom);
+  const save = () => {
+    dispatch({
+      type: "serialize",
+      callback: (value) => {
+        localStorage.setItem("notetaker-notes", value);
+      },
+    });
+  };
+
+  const load = () => {
+    const value = localStorage.getItem("notetaker-notes");
+    console.log(value);
+    if (value) {
+      dispatch({ type: "deserialize", value });
+    }
+  };
+
+  useEffect(() => {
+    console.log("loading...");
+    load();
+  }, []);
+
   const add = (values: any) => {
     // e.preventDefault();
+    console.log("adding");
     const noteText = form.getFieldValue("inputNote");
     const id = nanoid();
     noteAtomFamily({ id, noteText });
     setNotes((prev) => [...prev, id]);
     inputRef.current?.focus();
     form.setFieldValue("inputNote", "");
+    save();
   };
 
-  const [actualTime, setActualTime] = useState(new Date().toLocaleTimeString([],{hour: "2-digit", minute: "2-digit", second: "2-digit"}))
+  const [actualTime, setActualTime] = useState(
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+  );
   useEffect(() => {
     const update = () => {
-      setActualTime(new Date().toLocaleTimeString([],{hour: "2-digit", minute: "2-digit", second: "2-digit"}));
+      setActualTime(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
     };
 
     update();
@@ -102,7 +139,12 @@ const NoteList = () => {
         form={form}
         onFinish={add}
       >
-        <Form.Item name="inputNote" label={actualTime} rules={[{ required: true }]} style={{fontSize: "0.8rem", color: "#c0c0c0"}}>
+        <Form.Item
+          name="inputNote"
+          label={actualTime}
+          rules={[{ required: true }]}
+          style={{ fontSize: "0.8rem", color: "#c0c0c0" }}
+        >
           <Input.TextArea
             ref={inputRef}
             rows={4}
@@ -131,13 +173,10 @@ const serializeAtom = atom<
     const obj = {
       notes,
       noteMap,
-      filter: get(filterAtom),
     };
     action.callback(JSON.stringify(obj));
   } else if (action.type === "deserialize") {
     const obj = JSON.parse(action.value);
-    // needs error handling and type checking
-    set(filterAtom, obj.filter);
     obj.notes.forEach((id: string) => {
       const note = obj.noteMap[id];
       set(noteAtomFamily({ id, ...note }), note);
@@ -146,30 +185,6 @@ const serializeAtom = atom<
   }
 });
 
-const Persist = () => {
-  const [, dispatch] = useAtom(serializeAtom);
-  const save = () => {
-    dispatch({
-      type: "serialize",
-      callback: (value) => {
-        localStorage.setItem("serializedNotes", value);
-      },
-    });
-  };
-  const load = () => {
-    const value = localStorage.getItem("serializedNotes");
-    if (value) {
-      dispatch({ type: "deserialize", value });
-    }
-  };
-  return (
-    <div>
-      <button onClick={save}>Save to localStorage</button>
-      <button onClick={load}>Load from localStorage</button>
-    </div>
-  );
-};
-
 export default function App() {
   return (
     <Provider>
@@ -177,11 +192,6 @@ export default function App() {
         Note<span className="T">T</span>aker
       </h1>
       <NoteList />
-      <a.div className="note">
-        <Note id="hi" remove={() => console.log("")} />
-      </a.div>
-      <h3>Save locally</h3>
-      <Persist />
     </Provider>
   );
 }
