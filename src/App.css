@@ -2,14 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-#root {
-  width: 50ch;
-  margin-top: 5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-}
-
 /* input:not([type="checkbox"])  */
 textarea {
   font-family: inherit;

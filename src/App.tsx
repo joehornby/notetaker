@@ -141,7 +141,6 @@ const NoteList = () => {
           name="inputNote"
           label={actualTime}
           rules={[{ required: true }]}
-          style={{ fontSize: "0.8rem", color: "#c0c0c0" }}
         >
           <Input.TextArea
             ref={inputRef}
