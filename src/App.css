@@ -1,37 +1,6 @@
-@import url("https://rsms.me/inter/inter.css");
-
-:root {
-  font-family: Inter, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-  
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-  
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  background: #fbfbfb;
-  font-family: "Inter", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  filter: saturate(0);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 #root {
   width: 50ch;
@@ -51,7 +20,7 @@ textarea {
   padding: 1rem;
   margin-top: 0.5em;
   margin-bottom: 4em;
-  background: white;
+  background: rgba(255,255,255,0.3);
   height: auto;
 }
 
@@ -66,12 +35,12 @@ input:focus {
 }
 
 .anticon-delete:hover {
-  color: #272730;
+  color: var(--color-text);
 }
 
 .note {
   padding: 1rem;
-  background-color: #fff;
+  background-color: var(--color-background);
   border-radius: .5rem;
   box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.04);
   position: relative;
@@ -99,16 +68,39 @@ input:focus {
 }
 
 h1 {
-  font-size: 10em;
+  font-size: 3.2em;
+  line-height: 1.1;
   font-weight: 400;
   margin: 0;
   margin-bottom: 2rem;
   padding: 0;
   letter-spacing: -0.07em;
-  color: black;
   white-space: nowrap;
   font-kerning: normal;
 }
 h1 > .T {
   letter-spacing: -0.15em;
 }
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-text: #213547;
+    --color-background: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+a {
+  font-weight: 500;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+

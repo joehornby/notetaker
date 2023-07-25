@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CloseOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import { Input, Form } from "antd";
 import type { InputRef } from "antd";
 import { a, useTransition } from "@react-spring/web";
@@ -13,9 +13,7 @@ type Param = { id: string; noteText?: string };
 const noteAtomFamily = atomFamily(
   (param: Param) =>
     atom({
-      noteText:
-        param.noteText ||
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae ipsum nec odio iaculis rutrum. Maecenas condimentum neque et leo interdum, vitae accumsan massa porta. Proin dignissim varius odio, vel mollis justo venenatis sit amet.",
+      noteText: param.noteText || "",
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -108,7 +106,7 @@ const NoteList = () => {
     })
   );
   useEffect(() => {
-    const update = () => {
+    const updateClock = () => {
       setActualTime(
         new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -118,10 +116,10 @@ const NoteList = () => {
       );
     };
 
-    update();
+    updateClock();
 
     const interval = setInterval(() => {
-      update();
+      updateClock();
     }, 1000);
 
     return () => clearInterval(interval);
@@ -130,7 +128,7 @@ const NoteList = () => {
   return (
     <>
       <Form
-        onKeyPress={(e) => {
+        onKeyDown={(e) => {
           if (e.key === "Enter" && e.shiftKey == false) {
             e.preventDefault();
             form.submit();
@@ -154,7 +152,9 @@ const NoteList = () => {
           />
         </Form.Item>
       </Form>
-      <Notes remove={remove} />
+      <div style={{ overflow: "scroll", height: 300 }}>
+        <Notes remove={remove} />
+      </div>
     </>
   );
 };
