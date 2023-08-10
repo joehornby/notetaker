@@ -3,7 +3,6 @@ import {
   DeleteOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import { a, useTransition } from "@react-spring/web";
 import { useEffect, useRef, useState } from "react";
 import { Form, Input } from "antd";
 import type { InputRef } from "antd";
@@ -12,33 +11,6 @@ import { nanoid } from "nanoid";
 import { noteAtomFamily, notesAtom, serializeAtom } from "../atoms";
 import type { SerializedData } from "../types";
 import { Notes } from "./Notes";
-
-/* --------------------------------------------------------------------------
- * ACTION BAR STORYBOARD
- *
- * Read top-to-bottom. Each stage starts when selection count changes.
- *
- *   0ms   toolbar rests at the bottom with export actions visible
- *   0ms   first note selection updates copy/download labels to selected scope
- *  80ms   delete action fades in, scale 0.92 -> 1, y 6px -> 0
- *   0ms   clearing selection fades delete out and returns export actions to all
- * -------------------------------------------------------------------------- */
-
-const ACTION_BAR = {
-  deleteFrom: {
-    opacity: 0, // hidden before any notes are selected
-    transform: "translate3d(0, 6px, 0) scale(0.92)", // rises into the toolbar
-  },
-  deleteEnter: {
-    opacity: 1, // visible when selection exists
-    transform: "translate3d(0, 0, 0) scale(1)", // settled toolbar position
-  },
-  deleteLeave: {
-    opacity: 0, // fades before unmounting
-    transform: "translate3d(0, 4px, 0) scale(0.96)", // exits quietly downward
-  },
-  deleteSpring: { tension: 420, friction: 28 }, // snappy but not bouncy
-};
 
 const escapeCsvValue = (value: string) => {
   if (!/[",\n\r]/.test(value)) {
@@ -130,17 +102,8 @@ export const NoteList = () => {
 
   const selectedCount = selectedIds.size;
   const hasNotes = notes.length > 0;
-  const actionScopeLabel = selectedCount > 0 ? "selected" : "all";
-
-  const deleteTransitions = useTransition(
-    selectedCount > 0 ? [selectedCount] : [],
-    {
-      from: ACTION_BAR.deleteFrom,
-      enter: ACTION_BAR.deleteEnter,
-      leave: ACTION_BAR.deleteLeave,
-      config: ACTION_BAR.deleteSpring,
-    },
-  );
+  const hasSelection = selectedCount > 0;
+  const actionScopeLabel = hasSelection ? "selected" : "all";
 
   const [, dispatch] = useAtom(serializeAtom);
 
@@ -322,45 +285,67 @@ export const NoteList = () => {
         <Notes selectedIds={selectedIds} onToggleSelection={toggleSelection} />
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-3">
-        <div className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full bg-white/90 p-1.5 shadow-lg shadow-zinc-950/10 ring-1 ring-zinc-950/10 backdrop-blur dark:bg-zinc-900/90 dark:shadow-black/30 dark:ring-white/10">
-          {selectedCount > 0 ? (
+        <div className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-full bg-white/90 px-1 py-1.5 shadow-lg shadow-zinc-950/10 ring-1 ring-zinc-950/10 backdrop-blur dark:bg-zinc-900/90 dark:shadow-black/30 dark:ring-white/10">
+          <div
+            className={`overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out motion-reduce:transition-none ${
+              hasSelection
+                ? "max-w-[6.25rem] translate-y-0 opacity-100"
+                : "max-w-0 translate-y-1 opacity-0"
+            }`}
+          >
             <button
               type="button"
-              className="rounded-full px-2.5 py-1.5 text-sm font-medium tabular-nums text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-100"
+              aria-hidden={!hasSelection}
+              tabIndex={hasSelection ? 0 : -1}
+              className="group grid w-[6.25rem] rounded-full px-2 py-1.5 text-sm font-medium tabular-nums text-zinc-500 hover:bg-zinc-950/5 hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-100"
               onClick={clearSelection}
             >
-              {selectedCount} selected
+              <span className="col-start-1 row-start-1 group-hover:invisible group-focus-visible:invisible">
+                {selectedCount} selected
+              </span>
+              <span className="invisible col-start-1 row-start-1 group-hover:visible group-focus-visible:visible">
+                Deselect
+              </span>
             </button>
-          ) : null}
+          </div>
           <button
             type="button"
             disabled={!hasNotes}
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
             onClick={copyForMiro}
+            title={`Copy ${actionScopeLabel} notes for Miro`}
           >
             <CopyOutlined aria-hidden="true" />
-            {copyLabel === "Copied" ? "Copied" : `Miro ${actionScopeLabel}`}
+            {copyLabel === "Copied" ? "Copied" : "Miro"}
           </button>
           <button
             type="button"
             disabled={!hasNotes}
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
             onClick={downloadCsv}
+            title={`Download ${actionScopeLabel} notes as CSV`}
           >
             <DownloadOutlined aria-hidden="true" />
-            CSV {actionScopeLabel}
+            CSV
           </button>
-          {deleteTransitions((style) => (
-            <a.button
+          <div
+            className={`overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out motion-reduce:transition-none ${
+              hasSelection
+                ? "max-w-[5.25rem] translate-y-0 opacity-100"
+                : "max-w-0 translate-y-1 opacity-0"
+            }`}
+          >
+            <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1.5 text-sm font-medium tabular-nums text-red-700 ring-1 ring-red-700/10 hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-300/10 dark:hover:bg-red-900/50"
-              style={style}
+              aria-hidden={!hasSelection}
+              tabIndex={hasSelection ? 0 : -1}
+              className="inline-flex w-[5.25rem] items-center justify-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1.5 text-sm font-medium tabular-nums text-red-700 ring-1 ring-red-700/10 hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-300/10 dark:hover:bg-red-900/50"
               onClick={removeSelected}
             >
               <DeleteOutlined aria-hidden="true" />
               Delete
-            </a.button>
-          ))}
+            </button>
+          </div>
         </div>
       </div>
     </div>

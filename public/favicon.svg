@@ -1,0 +1,16 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    line {
+      stroke: #101827;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      line {
+        stroke: #f9fafb;
+      }
+    }
+  </style>
+  <line x1="3" y1="17.5" x2="13" y2="17.5" stroke-width="3" />
+  <line x1="3" y1="12.5" x2="21" y2="12.5" stroke-width="3" />
+  <line x1="3" y1="7.5" x2="21" y2="7.5" stroke-width="3" />
+</svg>
