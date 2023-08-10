@@ -8,9 +8,18 @@ import { Form, Input } from "antd";
 import type { InputRef } from "antd";
 import { useAtom } from "jotai";
 import { nanoid } from "nanoid";
-import { noteAtomFamily, notesAtom, serializeAtom } from "../atoms";
-import type { SerializedData } from "../types";
+import { noteAtomFamily, serializeAtom, sessionsAtom } from "../atoms";
+import type { NoteData, SessionData } from "../types";
 import { Notes } from "./Notes";
+
+type ExportData = {
+  notes: string[];
+  noteMap: Record<string, NoteData>;
+};
+
+interface NoteListProps {
+  session: SessionData;
+}
 
 const escapeCsvValue = (value: string) => {
   if (!/[",\n\r]/.test(value)) {
@@ -30,7 +39,7 @@ const escapeHtmlValue = (value: string) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-const buildMiroText = ({ notes, noteMap }: SerializedData) =>
+const buildMiroText = ({ notes, noteMap }: ExportData) =>
   [
     ["Timestamp", "Note"].join("\t"),
     ...notes.map((id) => {
@@ -43,7 +52,7 @@ const buildMiroText = ({ notes, noteMap }: SerializedData) =>
     }),
   ].join("\n");
 
-const buildMiroHtml = ({ notes, noteMap }: SerializedData) => `
+const buildMiroHtml = ({ notes, noteMap }: ExportData) => `
 <table>
   <thead>
     <tr>
@@ -66,7 +75,7 @@ const buildMiroHtml = ({ notes, noteMap }: SerializedData) => `
   </tbody>
 </table>`;
 
-const buildNotesCsv = ({ notes, noteMap }: SerializedData) => {
+const buildNotesCsv = ({ notes, noteMap }: ExportData) => {
   const rows = notes.map((id) => {
     const note = noteMap[id];
 
@@ -79,10 +88,10 @@ const buildNotesCsv = ({ notes, noteMap }: SerializedData) => {
   return ["Timestamp,Note", ...rows].join("\n");
 };
 
-const filterSerializedData = (
-  data: SerializedData,
+const filterExportData = (
+  data: ExportData,
   selectedIds: Set<string>,
-): SerializedData => {
+): ExportData => {
   if (selectedIds.size === 0) {
     return data;
   }
@@ -93,36 +102,34 @@ const filterSerializedData = (
   };
 };
 
-export const NoteList = () => {
+export const NoteList = ({ session }: NoteListProps) => {
   const [form] = Form.useForm();
   const inputRef = useRef<InputRef>(null);
-  const [notes, setNotes] = useAtom(notesAtom);
+  const [, setSessions] = useAtom(sessionsAtom);
   const [copyLabel, setCopyLabel] = useState("Copy for Miro");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [, dispatch] = useAtom(serializeAtom);
 
+  const notes = session.noteIds;
   const selectedCount = selectedIds.size;
   const hasNotes = notes.length > 0;
   const hasSelection = selectedCount > 0;
   const actionScopeLabel = hasSelection ? "selected" : "all";
 
-  const [, dispatch] = useAtom(serializeAtom);
-
-  const save = () => {
-    dispatch({
-      type: "serialize",
-      callback: (value) => {
-        localStorage.setItem("notetaker-notes", value);
-      },
-    });
-  };
-
-  const getSerializedData = () => {
-    let data: SerializedData = { notes: [], noteMap: {} };
+  const getSessionExportData = () => {
+    let data: ExportData = { notes, noteMap: {} };
 
     dispatch({
       type: "serialize",
       callback: (value) => {
-        data = JSON.parse(value);
+        const serialized = JSON.parse(value) as {
+          noteMap: Record<string, NoteData>;
+        };
+
+        data = {
+          notes,
+          noteMap: serialized.noteMap,
+        };
       },
     });
 
@@ -150,13 +157,22 @@ export const NoteList = () => {
   const removeSelected = () => {
     const idsToRemove = new Set(selectedIds);
 
-    setNotes((prev) => prev.filter((id) => !idsToRemove.has(id)));
+    setSessions((prev) =>
+      prev.map((item) =>
+        item.id === session.id
+          ? {
+              ...item,
+              noteIds: item.noteIds.filter((id) => !idsToRemove.has(id)),
+            }
+          : item,
+      ),
+    );
     idsToRemove.forEach((id) => noteAtomFamily.remove({ id }));
     setSelectedIds(new Set());
   };
 
   const copyForMiro = async () => {
-    const data = filterSerializedData(getSerializedData(), selectedIds);
+    const data = filterExportData(getSessionExportData(), selectedIds);
     const text = buildMiroText(data);
 
     if ("ClipboardItem" in window && navigator.clipboard.write) {
@@ -181,7 +197,7 @@ export const NoteList = () => {
 
   const downloadCsv = () => {
     const csv = buildNotesCsv(
-      filterSerializedData(getSerializedData(), selectedIds),
+      filterExportData(getSessionExportData(), selectedIds),
     );
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -193,19 +209,6 @@ export const NoteList = () => {
     URL.revokeObjectURL(url);
   };
 
-  const load = () => {
-    const value = localStorage.getItem("notetaker-notes");
-    console.log(value);
-    if (value) {
-      dispatch({ type: "deserialize", value });
-    }
-  };
-
-  useEffect(() => {
-    console.log("loading...");
-    load();
-  }, []);
-
   useEffect(() => {
     setSelectedIds((prev) => {
       const noteIds = new Set(notes);
@@ -216,14 +219,18 @@ export const NoteList = () => {
   }, [notes]);
 
   const add = () => {
-    console.log("adding");
     const noteText = form.getFieldValue("inputNote");
     const id = nanoid();
     noteAtomFamily({ id, noteText });
-    setNotes((prev) => [...prev, id]);
+    setSessions((prev) =>
+      prev.map((item) =>
+        item.id === session.id
+          ? { ...item, noteIds: [...item.noteIds, id] }
+          : item,
+      ),
+    );
     inputRef.current?.focus();
     form.setFieldValue("inputNote", "");
-    save();
   };
 
   const [actualTime, setActualTime] = useState(
@@ -282,7 +289,11 @@ export const NoteList = () => {
         </Form.Item>
       </Form>
       <div className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1">
-        <Notes selectedIds={selectedIds} onToggleSelection={toggleSelection} />
+        <Notes
+          notes={notes}
+          selectedIds={selectedIds}
+          onToggleSelection={toggleSelection}
+        />
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-3">
         <div className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-full bg-white/90 px-1 py-1.5 shadow-lg shadow-zinc-950/10 ring-1 ring-zinc-950/10 backdrop-blur dark:bg-zinc-900/90 dark:shadow-black/30 dark:ring-white/10">

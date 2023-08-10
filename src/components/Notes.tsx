@@ -1,15 +1,17 @@
-import { useAtom } from "jotai";
 import { a, useTransition } from "@react-spring/web";
-import { notesAtom } from "../atoms";
 import { Note } from "./Note";
 
 interface NotesProps {
+  notes: string[];
   selectedIds: Set<string>;
   onToggleSelection: (id: string) => void;
 }
 
-export const Notes = ({ selectedIds, onToggleSelection }: NotesProps) => {
-  const [notes] = useAtom(notesAtom);
+export const Notes = ({
+  notes,
+  selectedIds,
+  onToggleSelection,
+}: NotesProps) => {
   const transitions = useTransition(notes, {
     keys: (id: string) => id,
     from: {
