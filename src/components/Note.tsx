@@ -12,11 +12,18 @@ export const Note = ({ id, remove }: NoteProps) => {
   
   return (
     <>
-      <div className="metadata">
-        <span className="timestamp">{note.timestamp}</span>
-        <DeleteOutlined onClick={() => remove(id)} />
+      <div className="flex w-full justify-between">
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {note.timestamp}
+        </span>
+        <DeleteOutlined
+          className="w-8 cursor-pointer text-gray-400 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          onClick={() => remove(id)}
+        />
       </div>
-      <span className="text">{note.noteText}</span>
+      <span className="inline-block w-full text-gray-900 dark:text-gray-100">
+        {note.noteText}
+      </span>
     </>
   );
 };

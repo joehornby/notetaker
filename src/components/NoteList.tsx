@@ -99,13 +99,13 @@ export const NoteList = () => {
           <Input.TextArea
             ref={inputRef}
             rows={4}
-            style={{ width: "100%", height: 120, resize: "none" }}
+            className="w-full h-[120px] resize-none font-inherit border-none rounded-lg shadow-lg p-4 mt-2 mb-16 bg-white bg-opacity-80 dark:bg-gray-800 dark:bg-opacity-80 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none"
             bordered={false}
             placeholder="Type notes ..."
           />
         </Form.Item>
       </Form>
-      <div style={{ overflow: "scroll", height: 300 }}>
+      <div className="overflow-scroll h-[300px] pr-2">
         <Notes remove={remove} />
       </div>
     </>

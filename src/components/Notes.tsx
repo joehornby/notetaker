@@ -19,7 +19,10 @@ export const Notes = ({ remove }: NotesProps) => {
   return (
     <>
       {transitions((style, id) => (
-        <a.div className="note" style={style}>
+        <a.div
+          className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md relative flex flex-col w-full items-center justify-between gap-2 overflow-hidden mb-2"
+          style={style}
+        >
           <Note id={id} remove={remove} />
         </a.div>
       ))}
