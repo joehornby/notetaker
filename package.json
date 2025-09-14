@@ -9,24 +9,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ant-design/icons": "^4.7.0",
-    "@react-spring/web": "^9.5.5",
-    "antd": "^4.23.6",
-    "jotai": "^1.8.6",
-    "nanoid": "^4.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@ant-design/icons": "^4.8.3",
+    "@react-spring/web": "^9.7.5",
+    "antd": "^4.24.16",
+    "jotai": "^1.13.1",
+    "nanoid": "^4.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
-    "@vitejs/plugin-react": "^2.1.0",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.27",
-    "prettier": "^3.0.0",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^2.2.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.4.1",
-    "tailwindcss": "^3.3.3",
-    "typescript": "^4.6.4",
-    "vite": "^3.1.0"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^4.9.5",
+    "vite": "^3.2.11"
   }
 }
