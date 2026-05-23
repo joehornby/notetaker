@@ -38,6 +38,9 @@ export const formatSessionTimeRange = (
 
   const first = times[0];
   const last = times[times.length - 1];
+  const formatCardTime = (time: string) => time.split(":").slice(0, 2).join(":");
 
-  return first === last ? first : `${first} - ${last}`;
+  return first === last
+    ? formatCardTime(first)
+    : `${formatCardTime(first)} - ${formatCardTime(last)}`;
 };
