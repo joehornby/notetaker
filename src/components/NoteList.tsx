@@ -219,7 +219,13 @@ export const NoteList = ({ session }: NoteListProps) => {
   }, [notes]);
 
   const add = () => {
-    const noteText = form.getFieldValue("inputNote");
+    const noteText = form.getFieldValue("inputNote")?.trim();
+
+    if (!noteText) {
+      inputRef.current?.focus();
+      return;
+    }
+
     const id = nanoid();
     noteAtomFamily({ id, noteText });
     setSessions((prev) =>
@@ -274,11 +280,7 @@ export const NoteList = ({ session }: NoteListProps) => {
         form={form}
         onFinish={add}
       >
-        <Form.Item
-          name="inputNote"
-          label={actualTime}
-          rules={[{ required: true }]}
-        >
+        <Form.Item name="inputNote" label={actualTime}>
           <Input.TextArea
             ref={inputRef}
             rows={4}
