@@ -1,9 +1,10 @@
 import {
+  CheckOutlined,
   CopyOutlined,
   DeleteOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Form, Input } from "antd";
 import type { InputRef } from "antd";
 import { useAtom } from "jotai";
@@ -105,6 +106,7 @@ const filterExportData = (
 export const NoteList = ({ session }: NoteListProps) => {
   const [form] = Form.useForm();
   const inputRef = useRef<InputRef>(null);
+  const noteEndRef = useRef<HTMLDivElement>(null);
   const [, setSessions] = useAtom(sessionsAtom);
   const [copyLabel, setCopyLabel] = useState("Copy for Miro");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -115,6 +117,7 @@ export const NoteList = ({ session }: NoteListProps) => {
   const hasNotes = notes.length > 0;
   const hasSelection = selectedCount > 0;
   const actionScopeLabel = hasSelection ? "selected" : "all";
+  const isCopied = copyLabel === "Copied";
 
   const getSessionExportData = () => {
     let data: ExportData = { notes, noteMap: {} };
@@ -218,6 +221,16 @@ export const NoteList = ({ session }: NoteListProps) => {
     });
   }, [notes]);
 
+  useLayoutEffect(() => {
+    noteEndRef.current?.scrollIntoView({ block: "end" });
+
+    const scrollToLatestNote = window.requestAnimationFrame(() => {
+      noteEndRef.current?.scrollIntoView({ block: "end" });
+    });
+
+    return () => window.cancelAnimationFrame(scrollToLatestNote);
+  }, [notes]);
+
   const add = () => {
     const noteText = form.getFieldValue("inputNote")?.trim();
 
@@ -296,6 +309,7 @@ export const NoteList = ({ session }: NoteListProps) => {
           selectedIds={selectedIds}
           onToggleSelection={toggleSelection}
         />
+        <div ref={noteEndRef} aria-hidden="true" />
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-3">
         <div className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-full bg-white/90 px-1 py-1.5 shadow-lg shadow-zinc-950/10 ring-1 ring-zinc-950/10 backdrop-blur dark:bg-zinc-900/90 dark:shadow-black/30 dark:ring-white/10">
@@ -324,12 +338,33 @@ export const NoteList = ({ session }: NoteListProps) => {
           <button
             type="button"
             disabled={!hasNotes}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
+            aria-label={isCopied ? "Copied notes for Miro" : "Copy notes for Miro"}
+            className="grid w-[5.5rem] rounded-full px-2 py-1.5 text-sm font-medium text-zinc-600 transition-colors duration-150 ease-out hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
             onClick={copyForMiro}
             title={`Copy ${actionScopeLabel} notes for Miro`}
           >
-            <CopyOutlined aria-hidden="true" />
-            {copyLabel === "Copied" ? "Copied" : "Miro"}
+            <span
+              aria-hidden={isCopied}
+              className={`col-start-1 row-start-1 inline-flex items-center justify-center gap-1.5 transition-[opacity,filter,transform] duration-150 ease-out motion-reduce:transition-none ${
+                isCopied
+                  ? "translate-y-0.5 opacity-0 blur-sm"
+                  : "translate-y-0 opacity-100 blur-0"
+              }`}
+            >
+              <CopyOutlined aria-hidden="true" />
+              Miro
+            </span>
+            <span
+              aria-hidden={!isCopied}
+              className={`col-start-1 row-start-1 inline-flex items-center justify-center gap-1.5 transition-[opacity,filter,transform] duration-150 ease-out motion-reduce:transition-none ${
+                isCopied
+                  ? "translate-y-0 opacity-100 blur-0"
+                  : "-translate-y-0.5 opacity-0 blur-sm"
+              }`}
+            >
+              <CheckOutlined aria-hidden="true" />
+              Copied
+            </span>
           </button>
           <button
             type="button"

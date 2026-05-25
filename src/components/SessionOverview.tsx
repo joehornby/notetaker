@@ -150,7 +150,7 @@ export const SessionOverview = ({
           New session
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pb-2 pr-1">
+      <div className="-mx-2 min-h-0 flex-1 overflow-y-auto px-2 pb-4 pt-0.5">
         <div className="grid gap-3 sm:grid-cols-2">
           {sessions.map((session) => (
             <SessionCard
