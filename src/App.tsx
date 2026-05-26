@@ -1,9 +1,9 @@
-import { ArrowLeftOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { Provider, useAtom } from "jotai";
 import { nanoid } from "nanoid";
 import { useEffect, useState } from "react";
 import { activeSessionIdAtom, serializeAtom, sessionsAtom } from "./atoms";
-import { NoteList, SessionOverview } from "./components";
+import { NoteList } from "./components";
 import { createSession } from "./sessionUtils";
 
 import "./App.css";
@@ -41,6 +41,22 @@ const AppContent = () => {
     });
   }, [activeSessionId, dispatch, hasLoaded, sessions]);
 
+  useEffect(() => {
+    if (!hasLoaded || activeSession) {
+      return;
+    }
+
+    if (sessions.length > 0) {
+      setActiveSessionId(sessions[0].id);
+      return;
+    }
+
+    const session = createSession(nanoid());
+
+    setSessions([session]);
+    setActiveSessionId(session.id);
+  }, [activeSession, hasLoaded, sessions, setActiveSessionId, setSessions]);
+
   const startNewSession = () => {
     const session = createSession(nanoid());
 
@@ -49,33 +65,23 @@ const AppContent = () => {
   };
 
   if (!activeSession) {
-    return (
-      <SessionOverview
-        onOpenSession={setActiveSessionId}
-        onNewSession={startNewSession}
-      />
-    );
+    return null;
   }
 
   return (
     <>
-      <div className="mb-6 flex shrink-0 items-end justify-between gap-3">
+      <div className="mb-6 flex shrink-0 flex-col items-start gap-3">
         <div className="min-w-0">
-          <button
-            type="button"
-            className="-ml-2 mb-2 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-medium text-zinc-500 transition hover:bg-zinc-950/5 hover:text-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-100"
-            onClick={() => setActiveSessionId(null)}
-          >
-            <ArrowLeftOutlined aria-hidden="true" />
-            Sessions
-          </button>
           <h1 className="m-0 truncate p-0 text-4xl font-medium tracking-tight text-zinc-900 dark:text-zinc-100">
-            {activeSession.title}
+            NoteTaker
           </h1>
+          <p className="mt-1 truncate text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            {activeSession.title}
+          </p>
         </div>
         <button
           type="button"
-          className="mb-1 inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-zinc-600 shadow-sm shadow-zinc-950/5 ring-1 ring-zinc-950/10 transition hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-zinc-600 shadow-sm shadow-zinc-950/5 ring-1 ring-zinc-950/10 transition hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           onClick={startNewSession}
         >
           <PlusOutlined aria-hidden="true" />
