@@ -2,19 +2,54 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Provider, useAtom } from "jotai";
 import { nanoid } from "nanoid";
 import { useEffect, useState } from "react";
-import { activeSessionIdAtom, serializeAtom, sessionsAtom } from "./atoms";
+import {
+  activeSessionIdAtom,
+  noteAtomFamily,
+  serializeAtom,
+  sessionsAtom,
+} from "./atoms";
 import { NoteList } from "./components";
 import { createSession } from "./sessionUtils";
 
 import "./App.css";
 
 const STORAGE_KEY = "notetaker-notes";
+const DEMO_NOTES = [
+  "Type a note above and press Enter to save it. New notes appear at the top so the latest thought is always in reach.",
+  "Use the toolbar to copy notes for Miro, download a CSV, select notes, delete selections, or flip the note order.",
+];
+
+const createDemoSession = () => {
+  const session = createSession(nanoid());
+  const now = new Date();
+  const noteIds = DEMO_NOTES.map((noteText, index) => {
+    const id = nanoid();
+    const timestamp = new Date(now.getTime() - index * 60_000).toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      },
+    );
+
+    noteAtomFamily({ id, noteText, timestamp });
+
+    return id;
+  });
+
+  return {
+    ...session,
+    noteIds,
+  };
+};
 
 const AppContent = () => {
   const [sessions, setSessions] = useAtom(sessionsAtom);
   const [activeSessionId, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const [, dispatch] = useAtom(serializeAtom);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [shouldSeedDemoSession, setShouldSeedDemoSession] = useState(false);
   const activeSession =
     sessions.find((session) => session.id === activeSessionId) ?? null;
 
@@ -23,6 +58,8 @@ const AppContent = () => {
 
     if (value) {
       dispatch({ type: "deserialize", value });
+    } else {
+      setShouldSeedDemoSession(true);
     }
 
     setHasLoaded(true);
@@ -51,11 +88,20 @@ const AppContent = () => {
       return;
     }
 
-    const session = createSession(nanoid());
+    const session = shouldSeedDemoSession
+      ? createDemoSession()
+      : createSession(nanoid());
 
     setSessions([session]);
     setActiveSessionId(session.id);
-  }, [activeSession, hasLoaded, sessions, setActiveSessionId, setSessions]);
+  }, [
+    activeSession,
+    hasLoaded,
+    sessions,
+    setActiveSessionId,
+    setSessions,
+    shouldSeedDemoSession,
+  ]);
 
   const startNewSession = () => {
     const session = createSession(nanoid());

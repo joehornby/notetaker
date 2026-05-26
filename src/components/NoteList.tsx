@@ -1,4 +1,6 @@
 import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   CheckOutlined,
   CopyOutlined,
   DeleteOutlined,
@@ -106,13 +108,18 @@ const filterExportData = (
 export const NoteList = ({ session }: NoteListProps) => {
   const [form] = Form.useForm();
   const inputRef = useRef<InputRef>(null);
+  const noteContainerRef = useRef<HTMLDivElement>(null);
+  const noteStartRef = useRef<HTMLDivElement>(null);
   const noteEndRef = useRef<HTMLDivElement>(null);
+  const isChangingOrderRef = useRef(false);
   const [, setSessions] = useAtom(sessionsAtom);
   const [copyLabel, setCopyLabel] = useState("Copy for Miro");
+  const [isNewestFirst, setIsNewestFirst] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [, dispatch] = useAtom(serializeAtom);
 
   const notes = session.noteIds;
+  const orderedNotes = isNewestFirst ? notes : [...notes].reverse();
   const selectedCount = selectedIds.size;
   const hasNotes = notes.length > 0;
   const hasSelection = selectedCount > 0;
@@ -120,7 +127,7 @@ export const NoteList = ({ session }: NoteListProps) => {
   const isCopied = copyLabel === "Copied";
 
   const getSessionExportData = () => {
-    let data: ExportData = { notes, noteMap: {} };
+    let data: ExportData = { notes: orderedNotes, noteMap: {} };
 
     dispatch({
       type: "serialize",
@@ -130,7 +137,7 @@ export const NoteList = ({ session }: NoteListProps) => {
         };
 
         data = {
-          notes,
+          notes: orderedNotes,
           noteMap: serialized.noteMap,
         };
       },
@@ -172,6 +179,11 @@ export const NoteList = ({ session }: NoteListProps) => {
     );
     idsToRemove.forEach((id) => noteAtomFamily.remove({ id }));
     setSelectedIds(new Set());
+  };
+
+  const toggleNoteOrder = () => {
+    isChangingOrderRef.current = true;
+    setIsNewestFirst((prev) => !prev);
   };
 
   const copyForMiro = async () => {
@@ -222,14 +234,28 @@ export const NoteList = ({ session }: NoteListProps) => {
   }, [notes]);
 
   useLayoutEffect(() => {
-    noteEndRef.current?.scrollIntoView({ block: "end" });
+    if (isChangingOrderRef.current) {
+      noteContainerRef.current?.scrollTo({ top: 0 });
+      isChangingOrderRef.current = false;
+      return;
+    }
+
+    const scrollToPinnedNote = () => {
+      if (isNewestFirst) {
+        noteStartRef.current?.scrollIntoView({ block: "start" });
+      } else {
+        noteEndRef.current?.scrollIntoView({ block: "end" });
+      }
+    };
+
+    scrollToPinnedNote();
 
     const scrollToLatestNote = window.requestAnimationFrame(() => {
-      noteEndRef.current?.scrollIntoView({ block: "end" });
+      scrollToPinnedNote();
     });
 
     return () => window.cancelAnimationFrame(scrollToLatestNote);
-  }, [notes]);
+  }, [isNewestFirst, notes]);
 
   const add = () => {
     const noteText = form.getFieldValue("inputNote")?.trim();
@@ -244,7 +270,7 @@ export const NoteList = ({ session }: NoteListProps) => {
     setSessions((prev) =>
       prev.map((item) =>
         item.id === session.id
-          ? { ...item, noteIds: [...item.noteIds, id] }
+          ? { ...item, noteIds: [id, ...item.noteIds] }
           : item,
       ),
     );
@@ -303,9 +329,13 @@ export const NoteList = ({ session }: NoteListProps) => {
           />
         </Form.Item>
       </Form>
-      <div className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1">
+      <div
+        ref={noteContainerRef}
+        className="min-h-0 flex-1 overflow-y-auto pb-24 pr-1"
+      >
+        <div ref={noteStartRef} aria-hidden="true" />
         <Notes
-          notes={notes}
+          notes={orderedNotes}
           selectedIds={selectedIds}
           onToggleSelection={toggleSelection}
         />
@@ -375,6 +405,23 @@ export const NoteList = ({ session }: NoteListProps) => {
           >
             <DownloadOutlined aria-hidden="true" />
             CSV
+          </button>
+          <button
+            type="button"
+            disabled={!hasNotes}
+            className="inline-flex size-8 items-center justify-center rounded-full text-zinc-600 hover:bg-zinc-950/5 disabled:cursor-default disabled:text-zinc-300 disabled:hover:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:text-zinc-300 dark:hover:bg-white/10 dark:disabled:text-zinc-700 dark:disabled:hover:bg-transparent"
+            onClick={toggleNoteOrder}
+            title={
+              isNewestFirst
+                ? "Show oldest notes first"
+                : "Show newest notes first"
+            }
+          >
+            {isNewestFirst ? (
+              <ArrowDownOutlined aria-hidden="true" />
+            ) : (
+              <ArrowUpOutlined aria-hidden="true" />
+            )}
           </button>
           <div
             className={`overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out motion-reduce:transition-none ${
