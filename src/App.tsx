@@ -116,7 +116,7 @@ const AppContent = () => {
 
   return (
     <>
-      <div className="mb-6 flex shrink-0 flex-col items-start gap-3">
+      <div className="mb-6 flex shrink-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="m-0 truncate p-0 text-4xl font-medium tracking-tight text-zinc-900 dark:text-zinc-100">
             NoteTaker
@@ -127,7 +127,7 @@ const AppContent = () => {
         </div>
         <button
           type="button"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-zinc-600 shadow-sm shadow-zinc-950/5 ring-1 ring-zinc-950/10 transition hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="mt-1 inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-zinc-600 shadow-sm shadow-zinc-950/5 ring-1 ring-zinc-950/10 transition hover:bg-zinc-50 hover:text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400/40 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           onClick={startNewSession}
         >
           <PlusOutlined aria-hidden="true" />
