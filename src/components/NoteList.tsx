@@ -311,7 +311,7 @@ export const NoteList = ({ session }: NoteListProps) => {
         />
         <div ref={noteEndRef} aria-hidden="true" />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-3">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="pointer-events-auto flex max-w-full items-center gap-0.5 rounded-full bg-white/90 px-1 py-1.5 shadow-lg shadow-zinc-950/10 ring-1 ring-zinc-950/10 backdrop-blur dark:bg-zinc-900/90 dark:shadow-black/30 dark:ring-white/10">
           <div
             className={`overflow-hidden transition-[max-width,opacity,transform] duration-200 ease-out motion-reduce:transition-none ${
